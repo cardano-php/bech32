@@ -1,0 +1,4 @@
+include:
+  - coverage/_css
+  - coverage/_icons
+  - coverage/_js
