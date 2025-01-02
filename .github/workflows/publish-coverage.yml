@@ -1,0 +1,29 @@
+name: Publish PHPUnit Coverage Results
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  phpunit:
+    name: Run and Deploy Coverage Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4' # Adjust the PHP version as needed
+          extensions: mbstring, dom, xml, bcmath
+          ini-values: memory_limit=-1
+          coverage: xdebug
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+      - name: Run PHPUnit Tests
+        run: vendor/bin/phpunit --coverage-html=coverage
+      - name: Deploy to GitHub Pages
+        if: success()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./coverage
