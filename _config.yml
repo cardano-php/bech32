@@ -1,8 +1,8 @@
 include:
-  - coverage/_css/botstrap.min.css
-  - coverage/_css/custom.css
-  - coverage/_css/nv.d3.min.css
-  - coverage/_css/octicons.css
-  - coverage/_css/style.css
-  - coverage/_icons/**.svg
-  - coverage/_js/**.js
+  - _css/botstrap.min.css
+  - _css/custom.css
+  - _css/nv.d3.min.css
+  - _css/octicons.css
+  - _css/style.css
+  - _icons/*.svg
+  - coverage/_js/*.js
