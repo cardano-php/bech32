@@ -1,6 +1,6 @@
 name: Publish PHPUnit Coverage Results
 on:
-  pull_request:
+  push:
     branches:
       - main
 jobs:
@@ -27,3 +27,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./coverage
+          destination_dir: coverage # Publish into the 'coverage/' subdirectory
+          keep_files: true # Preserve existing content like README.md
