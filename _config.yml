@@ -1,4 +1,4 @@
 include:
-  - coverage/css/**.css
+  - coverage/_css/**.css
   - coverage/_icons/**.svg
   - coverage/_js/**.js
