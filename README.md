@@ -114,7 +114,7 @@ Ensure to handle potential exceptions when decoding invalid Bech32 strings:
 
 ```php
 try {
-    list($hrp, $data) = Bech32::decode($bech32);
+    [$hrp, $data] = Bech32::decode($bech32);
 } catch (Exception $e) {
     echo "Decoding failed: " . $e->getMessage();
 }
