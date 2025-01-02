@@ -1,4 +1,5 @@
 /.phpunit.cache/
 /.idea/
-/.vendor/
+/vendor/
 .phpunit.result.cache
+coverage.xml
