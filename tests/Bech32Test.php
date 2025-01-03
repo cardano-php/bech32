@@ -293,5 +293,4 @@ class Bech32Test extends TestCase
         Bech32::encodeCardanoAddress(0, 1, '9068a7a3f008803edac87af1619860f2cdcde40c26987325ace138ad');
     }
 
-
 }

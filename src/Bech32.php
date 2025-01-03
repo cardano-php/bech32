@@ -3,6 +3,7 @@
 namespace CardanoPhp\Bech32;
 
 use Exception;
+use SodiumException;
 use function array_merge;
 use function array_slice;
 use function count;
@@ -582,6 +583,50 @@ class Bech32
         $networkId = bindec(substr($typeAndNetwork, 4, 4));   // Last 4 bits
 
         return [$addressType, $networkId];
+    }
+
+    /**
+     * hashNativeAsset
+     *
+     * Helper function to provide CIP-0014 support for calculating the
+     * Blake2b-160 hash of the concatenated Policy ID + Asset Name. Returns the
+     * hex-encoded string representation of the asset hash.
+     *
+     * @param string $policyId  Hex-encoded Minting Policy ID
+     * @param string $assetName Hex-encoded Asset Name
+     *
+     * @return string Hex-encoded Blake2b-160 Hash
+     * @throws SodiumException
+     */
+    public static function hashNativeAsset(string $policyId, string $assetName): string
+    {
+        $assetBinary = sodium_hex2bin($policyId . $assetName);
+        // For sodium_crypto_generichash the length is specified in bytes so 20B = 160b
+        $b2Sum = sodium_crypto_generichash($assetBinary, "", 20);
+
+        return sodium_bin2hex($b2Sum);
+    }
+
+    /**
+     * encodeNativeAsset
+     *
+     * Return the fingerprint of the native asset given the specified policy ID
+     * and asset name.
+     *
+     * @param string $policyId  Hex-encoded Minting Policy ID
+     * @param string $assetName Hex-encoded Asset Name
+     *
+     * @return string Hex-encoded Blake2b-160 Hash
+     * @throws SodiumException
+     */
+    public static function encodeNativeAsset(string $policyId, string $assetName): string
+    {
+        // TODO: Add some sanity checking here...
+        // TODO: - Policy ID must be a 56-character hex-encoded string,
+        // TODO: - Asset Name cannot be more than 64 hex-encoded characters
+        $payload = self::hexToByteArray(self::hashNativeAsset($policyId, $assetName));
+
+        return self::encode('asset', $payload);
     }
 
 
