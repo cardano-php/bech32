@@ -1,8 +1,0 @@
-include:
-  - _css/botstrap.min.css
-  - _css/custom.css
-  - _css/nv.d3.min.css
-  - _css/octicons.css
-  - _css/style.css
-  - _icons/*.svg
-  - coverage/_js/*.js

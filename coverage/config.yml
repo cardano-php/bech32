@@ -1,4 +1,0 @@
-include:
-  - _css/*.css
-  - _icons/*.svg
-  - _js/*.js
