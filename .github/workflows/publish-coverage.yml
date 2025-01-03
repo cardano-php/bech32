@@ -21,6 +21,14 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-suggest
       - name: Run PHPUnit Tests
         run: vendor/bin/phpunit --coverage-html=coverage
+      # Rename Underscore Directories
+      - name: Rename Directories
+        run: |
+          mv coverage/_css coverage/css
+          mv coverage/_js coverage/js
+          mv coverage/_icons coverage/icons
+      - name: Fix Links in HTML Files
+        run: bash ./fix_coverage.sh
       - name: Deploy to GitHub Pages
         if: success()
         uses: peaceiris/actions-gh-pages@v3
