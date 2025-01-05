@@ -44,7 +44,7 @@ class Bech32
     const MAX_HRP_LENGTH = 83;
 
     // Printable ASCII Characters from ! (33) through ~ (126)
-    const HRP_REGEX = "/[\x21-\x7e]{1,83}/";
+    const HRP_REGEX = "/^[\x21-\x7e]{1,83}$/";
 
     // For quick and easy checking that a hex-string has been provided
     const HEX_REGEX = '/^[0-9A-F]*$/i';
