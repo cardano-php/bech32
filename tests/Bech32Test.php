@@ -69,7 +69,7 @@ class Bech32Test extends TestCase
     public function testDecodeMissingHrp()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Empty HRP');
+        $this->expectExceptionMessage('HRP too short');
 
         Bech32::decode('1qqqqqqqq');
     }
@@ -85,7 +85,7 @@ class Bech32Test extends TestCase
     public function testDecodeInvalidCharacterRange()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage("Out of range character in Bech32 string");
+        $this->expectExceptionMessage("Invalid characters in Bech32 data");
 
         Bech32::decode("test1!qqqqqqqq");
     }
@@ -93,7 +93,7 @@ class Bech32Test extends TestCase
     public function testDecodeMixedCase()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage("Data contains mixture of higher/lower case characters");
+        $this->expectExceptionMessage("Data contains mixed case characters");
 
         Bech32::decode("TeSt1pqqq0");
     }
