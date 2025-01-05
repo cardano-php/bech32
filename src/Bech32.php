@@ -46,6 +46,9 @@ class Bech32
     // Printable ASCII Characters from ! (33) through ~ (126)
     const HRP_REGEX = "/[\x21-\x7e]{1,83}/";
 
+    // For quick and easy checking that a hex-string has been provided
+    const HEX_REGEX = '/^[0-9A-F]*$/i';
+
     // There must be at least 6 characters in the data portion of a valid Bech32 encoding
     const MIN_DATA_LENGTH = 6;
 
@@ -629,11 +632,6 @@ class Bech32
      */
     public static function hashNativeAsset(string $policyId, string $assetName): string
     {
-        // TODO: Add sanity checking here...
-        // TODO: - Policy ID must be a 56-characer hex-encoded string
-        // TODO: - Asset Name must be between a 0-64-character hex-encoded string
-        // TODO: - Check that sodium extension is enabled an throw exception if now
-
         $assetBinary = sodium_hex2bin($policyId . $assetName);
         // For sodium_crypto_generichash the length is specified in bytes so 20B = 160b
         $b2Sum = sodium_crypto_generichash($assetBinary, "", 20);
@@ -650,29 +648,64 @@ class Bech32
      * @param string $policyId  Hex-encoded Minting Policy ID
      * @param string $assetName Hex-encoded Asset Name
      *
-     * @return string Hex-encoded Blake2b-160 Hash
+     * @return array Hex-encoded Blake2b-160 Hash
      * @throws SodiumException
+     * @throws Exception
      */
-    public static function encodeNativeAsset(string $policyId, string $assetName): string
+    public static function encodeNativeAsset(string $policyId, string $assetName): array
     {
-        // TODO: Add some sanity checking here...
-        // TODO: - Policy ID must be a 56-character hex-encoded string,
-        // TODO: - Asset Name cannot be more than 64 hex-encoded characters
-        $payload = self::hexToByteArray(self::hashNativeAsset($policyId, $assetName));
+        // Policy Id and Asset Name must always be lowercase, trim whitespace...
+        $policyId = strtolower(trim($policyId));
+        $assetName = strtolower(trim($assetName));
 
-        return self::encode('asset', $payload);
+        if (!preg_match(self::HEX_REGEX, $policyId)) {
+            throw new Exception("PolicyId contains invalid characters");
+        }
+
+        if (!preg_match(self::HEX_REGEX, $assetName)) {
+            throw new Exception("AssetName contains invalid characters");
+        }
+
+        if (strlen($policyId) !== 56) {
+            throw new Exception("A Cardano native asset Policy ID must be 56 characters");
+        }
+
+        if (strlen($assetName) > 64) {
+            throw new Exception("AssetName too long");
+        }
+
+        $assetHash = self::hashNativeAsset($policyId, $assetName);
+
+        $payload = self::hexToByteArray($assetHash);
+        $assetFingerprint = self::encode('asset', $payload);
+
+        return [
+            'policyId'         => $policyId, 'assetName' => $assetName,
+            'assetFingerprint' => $assetFingerprint, 'assetHash' => $assetHash,
+        ];
     }
 
-    public static function decodeNativeAsset(string $bech32): string
+    /**
+     * @param string $bech32
+     *
+     * @return array
+     * @throws Exception
+     */
+    public static function decodeNativeAsset(string $bech32): array
     {
-        // TODO: Add some sanity checking here...
-        // TODO: - Must begin with `asset`
         if (!str_starts_with($bech32, 'asset')) {
             throw new Exception("Invalid hrp");
         }
-        // TODO: - Must be a fixed length
         if (strlen($bech32) !== 44) {
             throw new Exception("A Cardano native asset fingerprint must be 44 characters");
         }
+
+        [, $data] = self::decode($bech32);
+
+        $assetHash = self::byteArrayToHex($data);
+
+        return [
+            'assetFingerprint' => $bech32, 'assetHash' => $assetHash,
+        ];
     }
 }

@@ -16,28 +16,44 @@ class Bech32AssetTest extends TestCase
     }
 
     #[DataProvider('assetProvider')]
-    public function testManualAssetEncoding($policyId, $assetName, $assetFingerprint)
+    public function testManualAssetEncoding($policyId, $assetName, $assetHash, $assetFingerprint)
     {
         $hash = Bech32::hashNativeAsset($policyId, $assetName);
+        $this->assertEquals($assetHash, $hash);
         $result = Bech32::encode('asset', Bech32::hexToByteArray($hash));
         $this->assertEquals($assetFingerprint, $result);
     }
 
     #[DataProvider('assetProvider')]
-    public function testAutomaticAssetEncoding($policyId, $assetName, $assetFingerprint)
+    public function testAutomaticAssetEncoding($policyId, $assetName, $assetHash, $assetFingerprint)
     {
         $result = Bech32::encodeNativeAsset($policyId, $assetName);
-        $this->assertEquals($assetFingerprint, $result);
+        $this->assertEquals([
+            'policyId'  => $policyId, 'assetName' => $assetName,
+            'assetHash' => $assetHash, 'assetFingerprint' => $assetFingerprint,
+        ], $result);
     }
 
     #[DataProvider('assetProvider')]
-    public function testManualAssetDecoding($policyId, $assetName, $assetFingerprint)
+    public function testManualAssetDecoding($policyId, $assetName, $assetHash, $assetFingerprint)
     {
         $hash = Bech32::hashNativeAsset($policyId, $assetName);
+        $this->assertEquals($assetHash, $hash);
         [$hrp, $data] = Bech32::decode($assetFingerprint);
         $decodedHash = Bech32::byteArrayToHex($data);
 
         $this->assertEquals('asset', $hrp);
         $this->assertEquals($hash, $decodedHash);
+    }
+
+    #[DataProvider('assetProvider')]
+    public function testAutomaticAssetDecoding($policyId, $assetName, $assetHash, $assetFingerprint)
+    {
+        $hash = Bech32::hashNativeAsset($policyId, $assetName);
+        $this->assertEquals($assetHash, $hash);
+        $result = Bech32::decodeNativeAsset($assetFingerprint);
+        $this->assertEquals([
+            'assetHash' => $assetHash, 'assetFingerprint' => $assetFingerprint,
+        ], $result);
     }
 }
