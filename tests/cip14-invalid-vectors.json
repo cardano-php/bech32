@@ -1,0 +1,51 @@
+[
+  {
+    "policyId": "7eae28",
+    "assetName": "504154415445",
+    "assetFingerprint": "asset13n25uv0yaf5kus35fm2k86cqy60z58d9xmde92",
+    "test": "encode",
+    "exception": "A Cardano native asset Policy ID must be 56 characters"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc3731",
+    "assetName": "504154415445",
+    "assetFingerprint": "asset13n25uv0yaf5kus35fm2k86cqy60z58d9xmde92",
+    "test": "encode",
+    "exception": "A Cardano native asset Policy ID must be 56 characters"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+    "assetName": "00000000000000000000000000000000000000000000000000000000000000001",
+    "assetFingerprint": "asset1pkpwyknlvul7az0xx8czhl60pyel45rpje4z8w",
+    "test": "encode",
+    "exception": "AssetName too long"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37z",
+    "assetName": "504154415445",
+    "assetFingerprint": "asset13n25uv0yaf5kus35fm2k86cqy60z58d9xmde92",
+    "test": "encode",
+    "exception": "PolicyId contains invalid characters"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+    "assetName": "504154415445q",
+    "assetFingerprint": "asset13n25uv0yaf5kus35fm2k86cqy60z58d9xmde92",
+    "test": "encode",
+    "exception": "AssetName contains invalid characters"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+    "assetName": "504154415445",
+    "assetFingerprint": "token13n25uv0yaf5kus35fm2k86cqy60z58d9xmde92",
+    "test": "decode",
+    "exception": "Invalid hrp"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+    "assetName": "504154415445",
+    "assetFingerprint": "asset13n25uv0yaf5kus35fm2k86cqy60z58d9xmde9",
+    "test": "decode",
+    "exception": "A Cardano native asset fingerprint must be 44 characters"
+  }
+]

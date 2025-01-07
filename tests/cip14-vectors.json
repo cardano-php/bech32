@@ -1,0 +1,50 @@
+[
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+    "assetName": "",
+    "assetHash": "1cadfc0e7068801d51d240d14a4085f2a3673cbb",
+    "assetFingerprint": "asset1rjklcrnsdzqp65wjgrg55sy9723kw09mlgvlc3"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e",
+    "assetName": "",
+    "assetHash": "9fde1e38dbbf6074f5c609e66ae5408bb3641745",
+    "assetFingerprint": "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3"
+  },
+  {
+    "policyId": "1e349c9bdea19fd6c147626a5260bc44b71635f398b67c59881df209",
+    "assetName": "",
+    "assetHash": "e1386b734f20334f4f9000a4689fbd9c52a70350",
+    "assetFingerprint": "asset1uyuxku60yqe57nusqzjx38aan3f2wq6s93f6ea"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+    "assetName": "504154415445",
+    "assetHash": "8cd54e31e4ea696e42344ed563eb00269e2a1da5",
+    "assetFingerprint": "asset13n25uv0yaf5kus35fm2k86cqy60z58d9xmde92"
+  },
+  {
+    "policyId": "1e349c9bdea19fd6c147626a5260bc44b71635f398b67c59881df209",
+    "assetName": "504154415445",
+    "assetHash": "bb2a1a2d8ae9e3ed880382df56bdb80adb2dff80",
+    "assetFingerprint": "asset1hv4p5tv2a837mzqrst04d0dcptdjmluqvdx9k3"
+  },
+  {
+    "policyId": "1e349c9bdea19fd6c147626a5260bc44b71635f398b67c59881df209",
+    "assetName": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+    "assetHash": "e806d2051ad1648e887c653b77fa7c2032f71a57",
+    "assetFingerprint": "asset1aqrdypg669jgazruv5ah07nuyqe0wxjhe2el6f"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+    "assetName": "1e349c9bdea19fd6c147626a5260bc44b71635f398b67c59881df209",
+    "assetHash": "f49be3bb96bac73dcaf14cd02ec0db38f167fd43",
+    "assetFingerprint": "asset17jd78wukhtrnmjh3fngzasxm8rck0l2r4hhyyt"
+  },
+  {
+    "policyId": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+    "assetName": "0000000000000000000000000000000000000000000000000000000000000000",
+    "assetHash": "0d82e25a7f673fee89e631f02bff4f0933fad061",
+    "assetFingerprint": "asset1pkpwyknlvul7az0xx8czhl60pyel45rpje4z8w"
+  }
+]

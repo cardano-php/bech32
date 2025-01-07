@@ -31,6 +31,62 @@ class Bech32Test extends TestCase
         $this->assertEquals($expectedDataChars, $dataChars);
     }
 
+    public function testEncodeHrpTooShort()
+    {
+        $expectedBech32String = '10pqtlnyq06v';
+        $hrp = '';
+        $dataChars = [15, 1, 0, 11, 31];
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('HRP too short');
+
+        $result = Bech32::encode($hrp, $dataChars);
+    }
+
+    public function testEncodeHrpTooLong()
+    {
+        $expectedBech32String = 'an84characterslonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio10pqtlnyq06v';
+        $hrp = 'an84characterslonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio';
+        $dataChars = [15, 1, 0, 11, 31];
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('HRP too long');
+
+        $result = Bech32::encode($hrp, $dataChars);
+    }
+
+    public function testEncodeSpaceInHrp()
+    {
+        $expectedBech32String = "addr test10pqtlnyq06v";
+        $hrp = "addr test";
+        $dataChars = [15, 1, 0, 11, 31];
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Invalid characters in HRP');
+
+        $result = Bech32::encode($hrp, $dataChars);
+    }
+
+    public function testDecodeSpaceInBech32()
+    {
+        $bech32String = "addr test10pqtlnyq06v";
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Out of range character in Bech32 string');
+
+        $result = Bech32::decode($bech32String);
+    }
+
+    public function testDecodeHrpTooLong()
+    {
+        $bech32String = 'an84characterslonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio10pqtlnyq06v';
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('HRP too long');
+
+        $result = Bech32::decode($bech32String);
+    }
+
     public function testDecodeMissingSeparatorCharacter()
     {
         $this->expectException(Exception::class);
@@ -69,7 +125,7 @@ class Bech32Test extends TestCase
     public function testDecodeMissingHrp()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Empty HRP');
+        $this->expectExceptionMessage('HRP too short');
 
         Bech32::decode('1qqqqqqqq');
     }
@@ -85,7 +141,7 @@ class Bech32Test extends TestCase
     public function testDecodeInvalidCharacterRange()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage("Out of range character in Bech32 string");
+        $this->expectExceptionMessage("Invalid characters in Bech32 data");
 
         Bech32::decode("test1!qqqqqqqq");
     }
@@ -93,7 +149,7 @@ class Bech32Test extends TestCase
     public function testDecodeMixedCase()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage("Data contains mixture of higher/lower case characters");
+        $this->expectExceptionMessage("Data contains mixed case characters");
 
         Bech32::decode("TeSt1pqqq0");
     }
@@ -292,6 +348,5 @@ class Bech32Test extends TestCase
 
         Bech32::encodeCardanoAddress(0, 1, '9068a7a3f008803edac87af1619860f2cdcde40c26987325ace138ad');
     }
-
 
 }

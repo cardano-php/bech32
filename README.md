@@ -29,25 +29,63 @@ require_once 'path/to/Bech32.php';
 ### Encoding
 
 ```php
-use PhpCardano\Bech32;
+use PhpCardano\Bech32\Bech32;
 
-$data = Bech32::hexToByteArray('your-data-hex-encoded-here');
-$hrp = 'addr'; // Human Readable Part (e.g., "addr" for Cardano addresses)
+// Set up our data to be encoded and our human readable part (HRP)
+$data = 'does-the-php-dev';
+$hrp = 'cardanophp';
+echo 'HRP: ' . $hrp . "\n" . ' Data: ' . $data . "\n";
 
-$encoded = Bech32Cardano::encode($hrp, $data);
-echo "Encoded: $encoded";
+// Hex-encode our data payload
+$hexdata = bin2hex($data);
+echo 'Hex Data: ' . $hexdata . "\n";
+
+// Convert our hex-encoded payload to a 5-bit "byte" array
+$bitdata = Bech32::hexToByteArray($hexdata);
+
+// Bech32 encode the HRP + 5-bit data payload
+$encoded = Bech32::encode($hrp, $bitdata);
+echo 'Encoded: ' . $encoded . "\n";
+```
+
+Expected Output:
+
+``` 
+HRP: cardanophp
+Data: does-the-php-dev
+Hex Data: 646f65732d7468652d7068702d646576
+Encoded: cardanophp1v3hk2uedw35x2ttsdpcz6er9wcjv4g3u
 ```
 
 ### Decoding
 
 ```php
-use PhpCardano\Bech32;
+use PhpCardano\Bech32\Bech32;
 
-$bech32 = 'addr1...'; // Your Bech32 string
+$bech32 = 'cardanophp1v3hk2uedw35x2ttsdpcz6er9wcjv4g3u'; // Your Bech32 string
 
-list($hrp, $data) = Bech32::decode($bech32);
-echo "HRP: $hrp\n";
-echo "Data: $data\n";
+// Decode returns the human readable part (HRP) and the data payload in a 5-bit array
+[$hrp, $bitData] = Bech32::decode($bech32);
+
+// Convert the 5-bit data back to a hex string
+$hexData = Bech32::byteArrayToHex($data);
+
+echo 'HRP: ' . $hrp . "\n";
+echo 'Hex Data: ' . $hexData . "\n";
+
+// Convert (if needed) from hex back to binary/ASCII
+
+$plainData = hex2bin($hexData);
+
+echo 'Data Payload: ' . $plainData . "\n";
+```
+
+Expected Output
+
+``` 
+HRP: cardanophp
+Hex Data: 646f65732d7468652d7068702d646576
+Data Payload: does-the-php-dev
 ```
 
 ### Decoding a Cardano Address
@@ -58,6 +96,8 @@ Example PHP Code:
 /**
 * JPG v2 Staked Public Contract
 **/
+
+use CardanoPhp\Bech32\Bech32;
 
 $bech32String = 'addr1qxegfu8m62peqmyamrdwmwqm00zjcak3u25xnanfdct4p9pf488uagw68fv50kjxv3wrx38829tay6zszthnccsradgqwt4upy';
 $result = Bech32::decodeCardanoAddress($bech32String);
@@ -86,6 +126,8 @@ Example PHP Code:
 /**
 * JPG v2 Staked Public Contract
 **/
+
+use CardanoPhp\Bech32\Bech32;
 
 $addressType = 3;                                                          // Script Hash + Script Hash
 $networkId = 1;                                                            // Cardano Mainnet

@@ -3,6 +3,7 @@
 namespace CardanoPhp\Bech32;
 
 use Exception;
+use SodiumException;
 use function array_merge;
 use function array_slice;
 use function count;
@@ -19,10 +20,11 @@ use function strlen;
  */
 class Bech32
 {
-    const GENERATOR   = [
+    const GENERATOR = [
         0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3,
     ];
 
+    // Valid characters in a Bech32-encoded data portion
     const CHARSET     = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
 
     const CHARKEY_KEY = [
@@ -35,14 +37,53 @@ class Bech32
         19, -1, 1, 0, 3, 16, 11, 28, 12, 14, 6, 4, 2, -1, -1, -1, -1, -1,
     ];
 
+    // HRM must be at least 1 character in length
+    const MIN_HRP_LENGTH = 1;
+
+    // HRP must be at most 83 characters in length
+    const MAX_HRP_LENGTH = 83;
+
+    // Printable ASCII Characters from ! (33) through ~ (126)
+    const HRP_REGEX = "/^[\x21-\x7e]{1,83}$/";
+
+    // For quick and easy checking that a hex-string has been provided
+    const HEX_REGEX = '/^[0-9A-F]*$/i';
+
+    // There must be at least 6 characters in the data portion of a valid Bech32 encoding
+    const MIN_DATA_LENGTH = 6;
+
+    // This character is reserved as the separator between the human readable
+    // part (HRP) and the data. The HRP may contain te separator character so
+    // the final occurrence of the separator character in the Bech32-encoded
+    // string is considered to be the separator demarcation between HRP and data
+    const SEPARATOR_CHARACTER = '1';
+
+    // The minimum length of a valid bech32 string is the minimum length of the
+    // HRP, the character length of the separator character, and the minimum
+    // length of the data. i.e. 1 + 1 + 6 = 8
+    const BECH32_MIN_LENGTH = 8;
+
     /**
      * @param string $hrp
      * @param array  $combinedDataChars
      *
      * @return string
+     * @throws Exception
      */
     public static function encode(string $hrp, array $combinedDataChars): string
     {
+        if (strlen($hrp) < self::MIN_HRP_LENGTH) {
+            throw new Exception('HRP too short');
+        }
+
+        if (strlen($hrp) > self::MAX_HRP_LENGTH) {
+            throw new Exception('HRP too long');
+        }
+
+        if (!preg_match(self::HRP_REGEX, $hrp)) {
+            throw new Exception('Invalid characters in HRP');
+        }
+
         $checksum = self::createChecksum($hrp, $combinedDataChars);
         $characters = array_merge($combinedDataChars, $checksum);
 
@@ -51,7 +92,7 @@ class Bech32
             $encoded[$i] = self::CHARSET[$characters[$i]];
         }
 
-        return "{$hrp}1" . implode('', $encoded);
+        return $hrp . self::SEPARATOR_CHARACTER . implode('', $encoded);
     }
 
     /**
@@ -67,7 +108,7 @@ class Bech32
     public static function decode(string $sBech): array
     {
         $length = strlen($sBech);
-        if ($length < 8) {
+        if ($length < self::BECH32_MIN_LENGTH) {
             throw new Exception("Bech32 string is too short");
         }
 
@@ -79,7 +120,7 @@ class Bech32
 
         for ($i = 0; $i < $length; $i++) {
             $x = $chars[$i];
-            if ($x <= 33 || $x >= 126) {
+            if ($x < 33 || $x > 126) {
                 throw new Exception('Out of range character in Bech32 string');
             }
 
@@ -99,15 +140,19 @@ class Bech32
         }
 
         if ($haveUpper && $haveLower) {
-            throw new Exception('Data contains mixture of higher/lower case characters');
+            throw new Exception('Data contains mixed case characters');
         }
 
         if ($positionOne === -1) {
             throw new Exception("Missing separator character");
         }
 
-        if ($positionOne < 1) {
-            throw new Exception("Empty HRP");
+        if ($positionOne < self::MIN_HRP_LENGTH) {
+            throw new Exception("HRP too short");
+        }
+
+        if ($positionOne > self::MAX_HRP_LENGTH) {
+            throw new Exception("HRP too long");
         }
 
         if (($positionOne + 7) > $length) {
@@ -115,6 +160,12 @@ class Bech32
         }
 
         $hrp = pack("C*", ...array_slice($chars, 0, $positionOne));
+        $dataS = pack("C*", ...array_slice($chars, $positionOne + 1));
+        $validDataRegex = "/^[" . self::CHARSET . "]+$/";
+
+        if (!preg_match($validDataRegex, $dataS)) {
+            throw new Exception("Invalid characters in Bech32 data");
+        }
 
         $data = [];
         for ($i = $positionOne + 1; $i < $length; $i++) {
@@ -359,10 +410,6 @@ class Bech32
             $addressType, $networkId,
         ] = self::decodeAddressHeader(substr($hexPayload, 0, 2));
 
-        /*        echo json_encode([
-                        'addressType' => $addressType, 'networkId' => $networkId,
-                    ]) . "\n";*/
-
         if ($networkId && $hrp !== 'addr') {
             throw new Exception("HRP does not match network ID");
         }
@@ -371,7 +418,6 @@ class Bech32
             throw new Exception("HRP does not match network ID");
         }
 
-        $networkSuffix = self::networkIdToBinary($networkId);
         $payloadHex = substr($hexPayload, 2);
 
         /**
@@ -386,8 +432,6 @@ class Bech32
          * 7: 0111.... ScriptHash (Enterprise)
          */
         $stakingKeyHash = '';
-        $stakeKeyPrefix = self::addressTypeToStakePrefixBinary($addressType);
-        $stakeAddress = null;
 
         switch ($addressType) {
             case 0: // PaymentKeyHash + StakeKeyHash
@@ -437,17 +481,6 @@ class Bech32
         }
 
         $stakeAddress = self::encodeCardanoStakeAddress($networkId, $addressType, $stakeHash);
-        //        else {
-        //            if ($addressType < 3 && !empty($stakeHash)) {
-        //                $stakeTypeHeader = self::addressTypeToStakePrefixBinary($addressType);
-        //                $stakeNetworkHeader = $addressNetworkHeader;
-        //                $stakeAddressPrefix = dechex(bindec($stakeTypeHeader . $stakeNetworkHeader));
-        //                $stakeAddressHex = $stakeAddressPrefix . $stakeHash;
-        //                $stakeHrp = $networkId ? 'stake' : 'stake_test';
-        //                $stakeAddressBytes = self::hexToByteArray($stakeAddressHex);
-        //                $stakeAddress = self::encode($stakeHrp, $stakeAddressBytes);
-        //            }
-        //        }
 
         $addressBytes = self::hexToByteArray($addressHeader . $paymentHash . $stakeHash);
 
@@ -584,5 +617,95 @@ class Bech32
         return [$addressType, $networkId];
     }
 
+    /**
+     * hashNativeAsset
+     *
+     * Helper function to provide CIP-0014 support for calculating the
+     * Blake2b-160 hash of the concatenated Policy ID + Asset Name. Returns the
+     * hex-encoded string representation of the asset hash.
+     *
+     * @param string $policyId  Hex-encoded Minting Policy ID
+     * @param string $assetName Hex-encoded Asset Name
+     *
+     * @return string Hex-encoded Blake2b-160 Hash
+     * @throws SodiumException
+     */
+    public static function hashNativeAsset(string $policyId, string $assetName): string
+    {
+        $assetBinary = sodium_hex2bin($policyId . $assetName);
+        // For sodium_crypto_generichash the length is specified in bytes so 20B = 160b
+        $b2Sum = sodium_crypto_generichash($assetBinary, "", 20);
 
+        return sodium_bin2hex($b2Sum);
+    }
+
+    /**
+     * encodeNativeAsset
+     *
+     * Return the fingerprint of the native asset given the specified policy ID
+     * and asset name.
+     *
+     * @param string $policyId  Hex-encoded Minting Policy ID
+     * @param string $assetName Hex-encoded Asset Name
+     *
+     * @return array Hex-encoded Blake2b-160 Hash
+     * @throws SodiumException
+     * @throws Exception
+     */
+    public static function encodeNativeAsset(string $policyId, string $assetName): array
+    {
+        // Policy Id and Asset Name must always be lowercase, trim whitespace...
+        $policyId = strtolower(trim($policyId));
+        $assetName = strtolower(trim($assetName));
+
+        if (!preg_match(self::HEX_REGEX, $policyId)) {
+            throw new Exception("PolicyId contains invalid characters");
+        }
+
+        if (!preg_match(self::HEX_REGEX, $assetName)) {
+            throw new Exception("AssetName contains invalid characters");
+        }
+
+        if (strlen($policyId) !== 56) {
+            throw new Exception("A Cardano native asset Policy ID must be 56 characters");
+        }
+
+        if (strlen($assetName) > 64) {
+            throw new Exception("AssetName too long");
+        }
+
+        $assetHash = self::hashNativeAsset($policyId, $assetName);
+
+        $payload = self::hexToByteArray($assetHash);
+        $assetFingerprint = self::encode('asset', $payload);
+
+        return [
+            'policyId'         => $policyId, 'assetName' => $assetName,
+            'assetFingerprint' => $assetFingerprint, 'assetHash' => $assetHash,
+        ];
+    }
+
+    /**
+     * @param string $bech32
+     *
+     * @return array
+     * @throws Exception
+     */
+    public static function decodeNativeAsset(string $bech32): array
+    {
+        if (!str_starts_with($bech32, 'asset')) {
+            throw new Exception("Invalid hrp");
+        }
+        if (strlen($bech32) !== 44) {
+            throw new Exception("A Cardano native asset fingerprint must be 44 characters");
+        }
+
+        [, $data] = self::decode($bech32);
+
+        $assetHash = self::byteArrayToHex($data);
+
+        return [
+            'assetFingerprint' => $bech32, 'assetHash' => $assetHash,
+        ];
+    }
 }
